@@ -26,8 +26,6 @@ void insereFila(Fila *f, int v);
 int removeFila(Fila *f);
 int bfs(Vertice *grafo, Fila *f, int *cor, int *dist, int *pred, int v);
 
-void imprimeGrafo(Vertice *vet, int n);
-
 int main()
 {
     int n, m;
@@ -42,32 +40,6 @@ int main()
     }
     
     return 0;
-}
-
-void imprimeGrafo(Vertice *vet, int n)
-{
-    Vertice *aux;
-    int i;
-
-    for (i = 0 ; i < n ; i++)
-    {
-        printf("grafo[%d] = ", i + 1);
-        if (vet[i].prox != NULL)
-        {
-            aux = vet[i].prox;
-
-            while (aux != NULL)
-            {
-                printf("%d, ", aux->val+1);
-                aux = aux->prox;
-            }
-            printf ("\n");
-        }
-        else
-        {
-            printf("NULL\n");
-        }
-    }
 }
 
 /* Função que le o grafo, inicializa os vetores dist, pred, cor e fila e faz a busca */
@@ -86,6 +58,7 @@ void leituraGrafo(int n, int m)
     {
         scanf("%d %d", &x, &y);
         adicionaListaAdjacencia(grafo, x-1, y-1);
+        adicionaListaAdjacencia(grafo, y-1, x-1); // Agora adicionamos o vértice y na lista de adjacência do vértice x
     }
 
     fila.primeiro = 0; // Inicialmente a fila está vazia
@@ -110,6 +83,7 @@ void leituraGrafo(int n, int m)
     {
         v = removeFila(&fila); // Remove um vértice da fila
         flag = bfs(grafo, &fila, cor, dist, pred, v); // Busca em largura dos nós vizinhos de v
+        cor[v] = PRETO;
     }
 
     if (flag) // Se encontrou que o grafo é bipartido
@@ -121,7 +95,7 @@ void leituraGrafo(int n, int m)
         printf("SIM\n");
     }
 
-    // imprimeGrafo(vet, n);
+    // imprimeGrafo(grafo, n);
     // Liberando memória alocada
     liberaListaAdjacencia(grafo, n);
     free(grafo);
@@ -206,7 +180,6 @@ int bfs(Vertice *grafo, Fila *f, int *cor, int *dist, int *pred, int v)
 {
     Vertice *aux = grafo[v].prox;
 
-    // printf("grafo[%d] = ", v+1);
     while (aux != NULL)
     {
         if (cor[aux->val] == BRANCO) // Se o vértice descoberto for branco
@@ -215,7 +188,6 @@ int bfs(Vertice *grafo, Fila *f, int *cor, int *dist, int *pred, int v)
             pred[aux->val] = v; // O predecessor do vértice atual, é seu antecessor
             cor[aux->val] = CINZA; // A cor do vértice descoberto se torna CINZA
             insereFila(f, aux->val); // Inserimos o vértice atual na fila
-            // printf("%d, ", aux->val+1);
         }
         else if (cor[aux->val] ==  CINZA) // Se o vértice já tiver sido visitado anteriormente
         {
@@ -230,6 +202,6 @@ int bfs(Vertice *grafo, Fila *f, int *cor, int *dist, int *pred, int v)
         }
         aux = aux->prox;
     }
-    // printf ("\n");
+
     return 0;
 }
