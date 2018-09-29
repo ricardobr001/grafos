@@ -1,3 +1,15 @@
+/* ==========================================================================
+ * Universidade Federal de São Carlos - Campus Sorocaba
+ * Disciplina: Algoritmos em Grafos
+ * Prof. Cândida Nunes da Silva
+ *
+ * Trabalho 01
+ *
+ * RA: 562262
+ * Aluno: Ricardo Mendes Leal Junior
+ * ========================================================================== */
+
+// Bibliotecas
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h> // INFINITY
@@ -95,7 +107,6 @@ void leituraGrafo(int n, int m)
         printf("SIM\n");
     }
 
-    // imprimeGrafo(grafo, n);
     // Liberando memória alocada
     liberaListaAdjacencia(grafo, n);
     free(grafo);
@@ -103,7 +114,6 @@ void leituraGrafo(int n, int m)
     free(dist);
     free(pred);
     free(fila.q);
-    // imprimeGrafo(vet, n);
 }
 
 /* Função que adiciona um novo vértice y na lista de adjacência do vértice x */
@@ -200,6 +210,7 @@ int bfs(Vertice *grafo, Fila *f, int *cor, int *dist, int *pred, int v)
                 return 1;
             }
         }
+
         aux = aux->prox;
     }
 
