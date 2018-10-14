@@ -12,7 +12,7 @@
 // Bibliotecas
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h> // INFINITY
+#include <limits.h> // INT_MAX
 
 // Definindo as cores que um nó podera ter
 #define BRANCO 0
@@ -80,7 +80,7 @@ void leituraGrafo(int n, int m)
     for (i = 1 ; i < n ; i++)
     {
         cor[i] = BRANCO; // Nenhum vertice ainda foi visitado
-        dist[i] = INFINITY; // A distância para todos os vértices é desconhecida
+        dist[i] = INT_MAX; // A distância para todos os vértices é desconhecida
         pred[i] = -1; // Nenhum vértice tem predecessor
     }
 
