@@ -1,7 +1,7 @@
 /* ==========================================================================
  * Universidade Federal de São Carlos - Campus Sorocaba
  * Disciplina: Algoritmos em Grafos
- * Prof. Cândida Nunes da Silva
+ * Profa. Cândida Nunes da Silva
  *
  * Trabalho 01
  *
