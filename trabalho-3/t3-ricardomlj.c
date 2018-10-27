@@ -29,11 +29,10 @@ void leituraGrafo(int n, int m);
 void adicionaListaAdjacencia(Vertice *vet, int x, int y);
 void liberaListaAdjacencia(Vertice *vet, int n);
 void cfc(Vertice *grafo, Vertice *grafoInvertido, int n);
-void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int v);
+void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int n, int raiz);
 void dfsAux(Vertice *grafo, int *cor, int *d, int *f, int *pred, int *tempo, int u);
 int novaRaiz(int *f, int n);
 int verificaPred(int *pred, int n, int raiz);
-int verificaCor(int *cor, int n);
 
 int main()
 {
@@ -179,37 +178,29 @@ void cfc(Vertice *grafo, Vertice *grafoInvertido, int n)
         predInv[i] = -1; // Nenhum vértice tem predecessor
     }
 
-    while (1)
-    {
-        dfs(grafo, cor, d, f, pred, raiz);
-        raiz = verificaCor(cor, n);
-
-        if (raiz == -1)
-        {
-            break;
-        }
-    }
+    // dfs no grafo normal
+    dfs(grafo, cor, d, f, pred, n, -1);
 
     // Se o grafo for conexo
-    // if (verificaPred(pred, n, raiz))
-    // {
-    raiz = novaRaiz(f, n);
-    dfs(grafoInvertido, corInv, dInv, fInv, predInv, raiz);
-    
-    // Verifica se após a dfs no grafo invertido, se ele é conexo
-    if (verificaPred(predInv, n, raiz))
+    if (verificaPred(pred, n, raiz))
     {
-        printf("1\n");
+        // raiz = novaRaiz(f, n);
+        dfs(grafoInvertido, corInv, dInv, fInv, predInv, n, raiz);
+        
+        // Verifica se após a dfs no grafo invertido, se ele é conexo
+        if (verificaPred(predInv, n, raiz))
+        {
+            printf("1\n");
+        }
+        else
+        {
+            printf("0\n");
+        }
     }
     else
     {
-        printf("0\n");
+        printf("0\n"); // Se for desconexo, imprime 0
     }
-    // }
-    // else
-    // {
-    //     printf("0\n"); // Se for desconexo, imprime 0
-    // }
 
     // Liberando a memória alocada para os vetores do grafo normal e invertido
     free(cor);
@@ -224,24 +215,36 @@ void cfc(Vertice *grafo, Vertice *grafoInvertido, int n)
 }
 
 /* Função que executa a DFS para a raiz */
-void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int v)
+void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int n, int raiz)
 {
-    int tempo = 0; // O tempo inicia em 0
+    int i, tempo = 0, flag = 0; // O tempo inicia em 0
     Vertice *aux;
 
-    aux = grafo[v].prox;
-    cor[v] = CINZA; // A raiz inicia como cor CINZA
-    
-    // Enquanto não explorar todos os vértices que a raiz alcança
-    while (aux != NULL)
+    // Se for a dfs do grafo normal
+    if (raiz == -1)
     {
-        if (cor[aux->val] == BRANCO) // Se o vértice descoberto estiver branco
+        // Percorre o vetor cor, executando a dfs no grafo
+        // Enquanto não encontrar duas raizes
+        for (i = 0 ; i < n ; i++)
         {
-            pred[aux->val] = v;
-            dfsAux(grafo, cor, d, f, pred, &tempo, aux->val); // Chama a dfs aux
-        }
+            // Se a cor do vértice for BRANCO e não tiver nenhuma raiz
+            if (cor[i] == BRANCO)
+            {
+                // Se encontrou outro vértice branco, e a flag já tiver valor 1
+                // O grafo normal possui duas raizes, então não é fortemente conexo
+                if (flag)
+                {
+                    break;
+                }
 
-        aux = aux->prox;
+                dfsAux(grafo, cor, d, f, pred, &tempo, i); // Executa a dfs-aux
+                flag++; // Incrementa que encontrou uma raiz
+            }
+        }
+    }
+    else // Se não, é dfs no grafo invertido
+    {
+        dfsAux(grafo, cor, d, f, pred, &tempo, raiz);
     }
 }
 
@@ -307,19 +310,4 @@ int verificaPred(int *pred, int n, int raiz)
     }
 
     return 1; // Caso andar todo o vetor, o grafo é fortemente conexo
-}
-
-int verificaCor(int *cor, int n)
-{
-    int i;
-
-    for (i = 0 ; i < n ; i++)
-    {
-        if (cor[i] == BRANCO)
-        {
-            return i;   
-        }
-    }
-
-    return -1;
 }
