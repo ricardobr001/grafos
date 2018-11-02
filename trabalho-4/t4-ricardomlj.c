@@ -29,12 +29,21 @@ typedef struct aresta
     int u, v;
 } Aresta;
 
+typedef struct pilha
+{
+    int teto;
+    Aresta *q;
+} Pilha;
+
 void leituraGrafo(int n, int m);
 void adicionaListaAdjacencia(Vertice *vet, int x, int y);
 void liberaListaAdjacencia(Vertice *vet, int n);
-void topSort(Vertice *grafo, int n);
-void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int n);
-int dfsAux(Vertice *grafo, int *cor, int *d, int *f, int *pred, int *tempo, int u);
+void topSort(Vertice *grafo, int n, int *tempoProjeto);
+void dfs(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempoProjeto, int n);
+int dfsAux(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempo, int *tempoProjeto, int u);
+void inserePilha(Pilha *p, Aresta a);
+Aresta removePilha(Pilha *p);
+int tempoMinimo(Pilha *p, int *tempoProjeto, int tam);
 
 int main()
 {
@@ -57,6 +66,13 @@ void leituraGrafo(int n, int m)
 {
     int i, x, y, z;
     Vertice *grafo = (Vertice*) calloc(n, sizeof(Vertice)); // Já setando os valores como NULL
+    int *tempoProjeto = (int*) malloc(n * sizeof(int)); // tempoProjeto = |V|
+
+    // Lendo o peso de cada projeto
+    for(i = 0 ; i < n ; i++)
+    {
+        scanf("%d", &tempoProjeto[i]);
+    }
 
     // Lendo os vértices e arestas
     for (i = 0 ; i < m ; i++)
@@ -68,7 +84,7 @@ void leituraGrafo(int n, int m)
     }
 
     // Ordenação topológica
-    topSort(grafo, n);
+    topSort(grafo, n, tempoProjeto);
 
     // Liberando memória alocada
     liberaListaAdjacencia(grafo, n);
@@ -129,17 +145,21 @@ void liberaListaAdjacencia(Vertice *vet, int n)
 }
 
 /* Função que faz a ordenação topológica do grafo */
-void topSort(Vertice *grafo, int n)
+void topSort(Vertice *grafo, int n, int *tempoProjeto)
 {
     int i, tempo = 0, raiz = 0, auxRaiz;
+    Pilha pilha;
     Vertice *aux;
 
     // Alocando memória para os vetores do grafo
-    Aresta *a = (Aresta*) malloc((n-1) * sizeof(Aresta)); // a = |V| (A árvore terá n-1 arestas no máximo)
+    pilha.q = (Aresta*) malloc((n-1) * sizeof(Aresta)); // a = |V| - 1 (A árvore terá n-1 arestas no máximo)
     int *cor = (int*) malloc(n * sizeof(int)); // cor = |V|
     int *d = (int*) malloc(n * sizeof(int)); // d = |V|
     int *f = (int*) malloc(n * sizeof(int)); // f = |V|
     int *pred = (int*) malloc(n * sizeof(int)); // pred = |V|
+
+    // Inicialmente a pilha está vazia
+    pilha.teto = 0;
 
     // Inicializa os vetores antes da DFS
     for (i = 0 ; i < n ; i++)
@@ -150,20 +170,25 @@ void topSort(Vertice *grafo, int n)
         pred[i] = -1; // Nenhum vértice tem predecessor
     }
 
-    // dfs no grafo normal
-    dfs(grafo, cor, d, f, pred, n);
+    // dfs no grafo
+    dfs(grafo, &pilha, cor, d, f, pred, tempoProjeto, n);
+
+    // Faz a soma dos tempos
+    tempoMinimo(&pilha, tempoProjeto, (n - 1));
 
     // Liberando a memória alocada para os vetores do grafo normal e invertido
     free(cor);
     free(d);
     free(f);
     free(pred);
+    free(pilha.q);
 }
 
 /* Função que executa a DFS para a raiz */
-void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int n)
+void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempoProjeto, int n)
 {
     int i, tempo = 0, flag = 0; // O tempo inicia em 0
+    Aresta a;
     Vertice *aux;
 
     // Executa a DFS para todo nó ainda marcado como BRANCO (Podemos ter várias raízes para a árvore)
@@ -171,16 +196,18 @@ void dfs(Vertice *grafo, int *cor, int *d, int *f, int *pred, int n)
     {
         if (cor[i] == BRANCO)
         {
-            dfsAux(grafo, cor, d, f, pred, &tempo, i);
+            a.v = dfsAux(grafo, pilha, cor, d, f, pred, &tempo, tempoProjeto, i);
+
+            a.u = i;
+            inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
         }
     }
 }
 
 /* Função que executa a DFS para os demais vértices, retorna o último vértice que foi explorado */
-int dfsAux(Vertice *grafo, int *cor, int *d, int *f, int *pred, int *tempo, int u)
+int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo, int *tempoProjeto,  int u)
 {
-    // v = u, pois se não tiver nenhum vértice na lista de adj, retorna o próprio u
-    int v = u;
+    Aresta a;
     Vertice *aux = grafo[u].prox; // aux recebe o primeiro vértice da lista de adj de u
 
     cor[u] = CINZA; // u acabou de ser descoberto
@@ -194,7 +221,10 @@ int dfsAux(Vertice *grafo, int *cor, int *d, int *f, int *pred, int *tempo, int 
         if (cor[aux->val] == BRANCO)
         {
             pred[aux->val] = u; // O predecessor do vértice descoberto se torna o vértice u
-            v = dfsAux(grafo, cor, d, f, pred, tempo, aux->val); // Explora o próximo vértice
+            a.v = dfsAux(grafo, pilha, cor, d, f, pred, tempo, tempoProjeto, aux->val); // Explora o próximo vértice
+
+            a.u = u;
+            inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
         }
     }
 
@@ -204,5 +234,34 @@ int dfsAux(Vertice *grafo, int *cor, int *d, int *f, int *pred, int *tempo, int 
     (*tempo)++; // Incrementamos o tempo
     aux = aux->prox;
 
-    return v; // Retorna o vértice que acabou de ser explorado
+    return u; // Retorna o vértice que acabou de ser explorado
+}
+
+/* Função que insere uma nova aresta na fila */
+void inserePilha(Pilha *p, Aresta a)
+{
+    p->q[p->teto] = a;
+    p->teto++;
+}
+
+/* Função que remove uma aresta da fila */
+Aresta removePilha(Pilha *p)
+{
+    Aresta aux = p->q[p->teto - 1];
+    p->teto--;
+
+    return aux;
+}
+
+int tempoMinimo(Pilha *p, int *tempoProjeto, int tam)
+{
+    int i, j, tempo, soma = 0;
+    Aresta aux;
+
+    // Laço que irá percorrer a pilha
+    for (i = 0 ; i < tam ; i++)
+    {
+        aux = removePilha(p); // Recuperando o topo da pilha
+        tempo = tempoProjeto[aux.u]; // Recuperando o tempo que o projeto u demora para finalizar
+    }
 }
