@@ -39,8 +39,8 @@ void leituraGrafo(int n, int m);
 void adicionaListaAdjacencia(Vertice *vet, int x, int y);
 void liberaListaAdjacencia(Vertice *vet, int n);
 void topSort(Vertice *grafo, int n, int *tempoProjeto);
-void dfs(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempoProjeto, int n);
-int dfsAux(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempo, int *tempoProjeto, int u);
+void dfs(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int n);
+int dfsAux(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempo, int u);
 void inserePilha(Pilha *p, Aresta a);
 Aresta removePilha(Pilha *p);
 int tempoMinimo(Pilha *p, int *tempoProjeto, int tam);
@@ -171,7 +171,7 @@ void topSort(Vertice *grafo, int n, int *tempoProjeto)
     }
 
     // dfs no grafo
-    dfs(grafo, &pilha, cor, d, f, pred, tempoProjeto, n);
+    dfs(grafo, &pilha, cor, d, f, pred, n);
 
     // Faz a soma dos tempos
     tempoMinimo(&pilha, tempoProjeto, (n - 1));
@@ -185,7 +185,7 @@ void topSort(Vertice *grafo, int n, int *tempoProjeto)
 }
 
 /* Função que executa a DFS para a raiz */
-void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempoProjeto, int n)
+void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int n)
 {
     int i, tempo = 0, flag = 0; // O tempo inicia em 0
     Aresta a;
@@ -196,7 +196,7 @@ void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int 
     {
         if (cor[i] == BRANCO)
         {
-            a.v = dfsAux(grafo, pilha, cor, d, f, pred, &tempo, tempoProjeto, i);
+            a.v = dfsAux(grafo, pilha, cor, d, f, pred, &tempo, i);
 
             a.u = i;
             inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
@@ -205,7 +205,7 @@ void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int 
 }
 
 /* Função que executa a DFS para os demais vértices, retorna o último vértice que foi explorado */
-int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo, int *tempoProjeto,  int u)
+int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo,  int u)
 {
     Aresta a;
     Vertice *aux = grafo[u].prox; // aux recebe o primeiro vértice da lista de adj de u
@@ -221,7 +221,7 @@ int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, in
         if (cor[aux->val] == BRANCO)
         {
             pred[aux->val] = u; // O predecessor do vértice descoberto se torna o vértice u
-            a.v = dfsAux(grafo, pilha, cor, d, f, pred, tempo, tempoProjeto, aux->val); // Explora o próximo vértice
+            a.v = dfsAux(grafo, pilha, cor, d, f, pred, tempo, aux->val); // Explora o próximo vértice
 
             a.u = u;
             inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
@@ -255,13 +255,13 @@ Aresta removePilha(Pilha *p)
 
 int tempoMinimo(Pilha *p, int *tempoProjeto, int tam)
 {
-    int i, j, tempo, soma = 0;
-    Aresta aux;
+    int i, j, v = 0, tempoAux, tempoMin = 0;
+    Aresta auxAresta;
 
     // Laço que irá percorrer a pilha
     for (i = 0 ; i < tam ; i++)
     {
-        aux = removePilha(p); // Recuperando o topo da pilha
-        tempo = tempoProjeto[aux.u]; // Recuperando o tempo que o projeto u demora para finalizar
+        auxAresta = removePilha(p); // Recuperando o topo da pilha
+        tempoAux = tempoProjeto[auxAresta.u];
     }
 }
