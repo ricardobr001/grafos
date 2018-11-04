@@ -64,6 +64,7 @@ int main()
 /* Função que le o grafo, inicializa os vetores dist, pred, cor e fila e faz a busca */
 void leituraGrafo(int n, int m)
 {
+    printf("n = %d\tm = %d\n", n, m);
     int i, x, y, z;
     Vertice *grafo = (Vertice*) calloc(n, sizeof(Vertice)); // Já setando os valores como NULL
     int *tempoProjeto = (int*) malloc(n * sizeof(int)); // tempoProjeto = |V|
@@ -80,7 +81,7 @@ void leituraGrafo(int n, int m)
         scanf("%d %d", &x, &y);
 
         // Inserindo na lista de adjacencia
-        adicionaListaAdjacencia(grafo, x-1, y-1);
+        adicionaListaAdjacencia(grafo, x, y);
     }
 
     // Ordenação topológica
@@ -198,14 +199,21 @@ void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int 
         {
             a.v = dfsAux(grafo, pilha, cor, d, f, pred, &tempo, i);
 
-            a.u = i;
-            inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
+            // Toda vez que o i for diferente de 0, insere na lista
+            if (i)
+            {
+                // O dfsAux sempre retornara o próprio i, então quando for uma nova raiz
+                // Devemos inserir na pilha a aresta do vértice i até o primeiro vértice alcançado por i
+                a.v = grafo[i].prox->val;
+                a.u = i;
+                inserePilha(pilha, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
+            }
         }
     }
 }
 
 /* Função que executa a DFS para os demais vértices, retorna o último vértice que foi explorado */
-int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo,  int u)
+int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo, int u)
 {
     Aresta a;
     Vertice *aux = grafo[u].prox; // aux recebe o primeiro vértice da lista de adj de u
@@ -224,15 +232,16 @@ int dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, in
             a.v = dfsAux(grafo, pilha, cor, d, f, pred, tempo, aux->val); // Explora o próximo vértice
 
             a.u = u;
-            inserePilha(f, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
+            inserePilha(pilha, a); // Inserindo na pilha a aresta de u do vértice v que acabou de ser explorado
         }
+
+        aux = aux->prox;
     }
 
     // Quando o vértice terminar de ser explorado
     cor[u] = PRETO; // A cor do vértice u se torna PRETO
     f[u] = *tempo; // O vértice u terminou de ser explorado no tempo x
     (*tempo)++; // Incrementamos o tempo
-    aux = aux->prox;
 
     return u; // Retorna o vértice que acabou de ser explorado
 }
@@ -247,7 +256,7 @@ void inserePilha(Pilha *p, Aresta a)
 /* Função que remove uma aresta da fila */
 Aresta removePilha(Pilha *p)
 {
-    Aresta aux = p->q[p->teto - 1];
+    Aresta aux = p->q[p->teto];
     p->teto--;
 
     return aux;
@@ -256,12 +265,14 @@ Aresta removePilha(Pilha *p)
 int tempoMinimo(Pilha *p, int *tempoProjeto, int tam)
 {
     int i, j, v = 0, tempoAux, tempoMin = 0;
-    Aresta auxAresta;
+    Aresta auxAresta = removePilha(p);
 
     // Laço que irá percorrer a pilha
     for (i = 0 ; i < tam ; i++)
     {
         auxAresta = removePilha(p); // Recuperando o topo da pilha
-        tempoAux = tempoProjeto[auxAresta.u];
+        printf("%d -> %d\n", auxAresta.u, auxAresta.v);
     }
+
+    return 1;
 }
