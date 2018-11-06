@@ -24,11 +24,6 @@ typedef struct vertice
     struct vertice *prox;
 } Vertice;
 
-typedef struct aresta
-{
-    int u, v;
-} Aresta;
-
 typedef struct pilha
 {
     int teto, *v;
@@ -192,7 +187,6 @@ void topSort(Vertice *grafo, int n, int *tempoProjeto, int *fixo)
 void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int n)
 {
     int i, tempo = 0, flag = 0; // O tempo inicia em 0
-    Aresta a;
     Vertice *aux;
 
     // Executa a DFS para todo nó ainda marcado como BRANCO (Podemos ter várias raízes para a árvore)
@@ -208,7 +202,6 @@ void dfs(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int 
 /* Função que executa a DFS para os demais vértices, retorna o último vértice que foi explorado */
 void dfsAux(Vertice *grafo, Pilha *pilha, int *cor, int *d, int *f, int *pred, int *tempo, int u)
 {
-    Aresta a;
     Vertice *aux = grafo[u].prox; // aux recebe o primeiro vértice da lista de adj de u
 
     cor[u] = CINZA; // u acabou de ser descoberto
