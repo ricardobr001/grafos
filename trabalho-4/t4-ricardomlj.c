@@ -38,14 +38,15 @@ typedef struct pilha
 void leituraGrafo(int n, int m);
 void adicionaListaAdjacencia(Vertice *vet, int x, int y);
 void liberaListaAdjacencia(Vertice *vet, int n);
-void topSort(Vertice *grafo, int n, int *tempoProjeto);
+void topSort(Vertice *grafo, int n, int *tempoProjeto, int *fixo);
 void dfs(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int n);
 int dfsAux(Vertice *grafo, Pilha *fila, int *cor, int *d, int *f, int *pred, int *tempo, int u);
 void inserePilha(Pilha *p, Aresta a);
 Aresta removePilha(Pilha *p);
-int tempoMinimo(Pilha *p, int *tempoProjeto, int tam);
+int tempoMinimo(Pilha *p, int *tempoProjeto, int *fixo, int tam);
 void insereVertice(Pilha *p, int v);
 int removeVertice(Pilha *p);
+void atualizaTempo(Pilha *p, int *inic, int *fim, int*fixo, int u, int tam);
 
 int main()
 {
@@ -69,11 +70,13 @@ void leituraGrafo(int n, int m)
     int i, x, y, z;
     Vertice *grafo = (Vertice*) calloc(n, sizeof(Vertice)); // Já setando os valores como NULL
     int *tempoProjeto = (int*) malloc(n * sizeof(int)); // tempoProjeto = |V|
+    int *fixo = (int*) malloc(n * sizeof(int)); // tempoProjeto = |V|
 
     // Lendo o peso de cada projeto
     for(i = 0 ; i < n ; i++)
     {
         scanf("%d", &tempoProjeto[i]);
+        fixo[i] = tempoProjeto[i];
     }
 
     // Lendo os vértices e arestas
@@ -86,11 +89,13 @@ void leituraGrafo(int n, int m)
     }
 
     // Ordenação topológica
-    topSort(grafo, n, tempoProjeto);
+    topSort(grafo, n, tempoProjeto, fixo);
 
     // Liberando memória alocada
     liberaListaAdjacencia(grafo, n);
     free(grafo);
+    free(tempoProjeto);
+    free(fixo);
 }
 
 /* Função que adiciona um novo vértice y na lista de adjacência do vértice x */
@@ -147,7 +152,7 @@ void liberaListaAdjacencia(Vertice *vet, int n)
 }
 
 /* Função que faz a ordenação topológica do grafo */
-void topSort(Vertice *grafo, int n, int *tempoProjeto)
+void topSort(Vertice *grafo, int n, int *tempoProjeto, int *fixo)
 {
     int i, tempo = 0, raiz = 0, auxRaiz;
     Pilha pilha;
@@ -178,7 +183,7 @@ void topSort(Vertice *grafo, int n, int *tempoProjeto)
     dfs(grafo, &pilha, cor, d, f, pred, n);
 
     // Faz a soma dos tempos
-    tempoMinimo(&pilha, tempoProjeto, (n - 1));
+    printf("%d\n", tempoMinimo(&pilha, tempoProjeto, fixo, (n - 1)));
 
     // Liberando a memória alocada para os vetores do grafo normal e invertido
     free(cor);
@@ -267,7 +272,7 @@ void insereVertice(Pilha *p, int u)
 /* Função que remove uma aresta da fila */
 Aresta removePilha(Pilha *p)
 {
-    Aresta aux = p->q[p->teto];
+    Aresta aux = p->q[p->teto - 1];
     p->teto--;
 
     return aux;
@@ -281,27 +286,68 @@ int removeVertice(Pilha *p)
     return aux;
 }
 
-int tempoMinimo(Pilha *p, int *tempoProjeto, int tam)
+int tempoMinimo(Pilha *p, int *fim, int* fixo, int tam)
 {
-    int i, j, v = 0, tempoAux, tempoMin = 0;
-    Aresta auxAresta; //  = removePilha(p);
+    int i, v = 0, maior = -1;
+    int tamPilhaVertice = tam + 1, tamAresta = tam; 
 
-    printf("Pilha apos DFS\nu -> v\nu chega em v\n\n");
-    // Laço que irá percorrer a pilha
-    for (i = 0 ; i < tam ; i++)
+    // Inicialmente o tempo de inicio de todos os projetos é 0
+    int *inicio = (int*) calloc(tamPilhaVertice, sizeof(int));
+    for (i = 0 ; i < tamPilhaVertice ; i++)
     {
-        auxAresta = removePilha(p); // Recuperando o topo da pilha
-        printf("%d -> %d\n", auxAresta.u, auxAresta.v);
+        printf("inic[%d] = %d\tfim[%d] = %d\tfixo[%d] = %d\n", i, inicio[i], i, fim[i], i, fixo[i]);
     }
 
-    printf("Pilha apos DFS (vertices)\n\n");
-    tam++;
-    // Laço que irá percorrer a pilha
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tamPilhaVertice ; i++)
     {
-        // v = removeVertice(p); // Recuperando o topo da pilha
-        printf("%d\n", removeVertice(p));
+        v = removeVertice(p); // recupera último vértice visitado
+
+        atualizaTempo(p, inicio, fim, fixo, v, tamAresta); // Atualiza o tempo no vetor fim
     }
 
-    return 1;
+    for (i = 0 ; i < tamPilhaVertice ; i++)
+    {
+        printf("inic[%d] = %d\tfim[%d] = %d\tfixo[%d] = %d\n", i, inicio[i], i, fim[i], i, fixo[i]);
+    }
+
+    // Laço para encontrar o maior valor no vetor fim
+    for (i = 0 ; i < tamPilhaVertice ; i++)
+    {
+        if (fim[i] > maior)
+        {
+            maior = fim[i];
+        }
+    }
+
+
+    return maior;
+}
+
+void atualizaTempo(Pilha *p, int *inic, int *fim, int* fixo, int u, int tam)
+{
+    int i;
+    Aresta aux;
+    printf("u = %d\n\n", u);
+
+    // Andando a pilha
+    for (i = 0 ; i < tam ; i++)
+    {
+        aux = removePilha(p); // Recupera a última aresta da pilha
+
+        // Se a aresta recuperada for igual a u
+        if(u == aux.u)
+        {
+            printf("%d -> %d\n", aux.u, aux.v);
+            // Se o fim de u for maior que o inicio de v, atualiza o tempo de inicio de fim de v
+            if(fim[u] > inic[aux.v])
+            {
+                printf("inic[%d] = %d\tfim[%d] = %d\n", aux.v, inic[aux.v], aux.v, fim[aux.v]);
+                inic[aux.v] = fim[u]; // O inicio se torna o fim de u
+                fim[aux.v] = fixo[aux.v] + inic[aux.v]; // O fim de v se torna o tempo do projeto v mais o inicio de v
+                printf("inic[%d] = %d\tfim[%d] = %d\n", aux.v, inic[aux.v], aux.v, fim[aux.v]);
+            }
+        }
+    }
+
+    p->teto = tam; // Voltanto o teto da pilha
 }
