@@ -185,72 +185,63 @@ void dijkstra(Vertice *grafo, int *dist, int *pred, int *solucao, Vetor *vet, in
         vezes = vet->qtdd;
 
         // Anda o vetor de solução para atualizar o custo conhecido de U até V
+        // Andando todas as arestas conhecidas
         for (i = 0 ; i < vezes ; i++)
         {
-            // printf("qtdd solucao: %d\n", vet->qtdd);
-            // imprimeSolucao(2, n, pred);
-            // printf("\n");
             // Recupera o vértice alcançado pelo o vértice do vetor
             u = vet->q[i];
             aux = grafo[u].prox;
-            printf("u = %d\n", u);
+            // printf("\n\nu = %d\n", u);
             // Anda a lista de adjacência caso exista
             while (aux != NULL)
             {
                 v = aux->val;
                 custoUV = aux->custo;
 
-                printf("Verificando v[%d] -- pred = %d\n", v, pred[v]);
-                printf("%d está na solucao - %d\n", v, solucao[v]);
-                printf("%d > %d + %d (%d)\n", dist[v], dist[u], custoUV, dist[u] + custoUV);
+                // printf("Verificando v[%d] -- pred = %d\n", v, pred[v]);
+                // printf("%d está na solucao - %d\n", v, solucao[v]);
                 
                 // Se o vértice alcançado não estiver na solução
-                // e
-                // A distância conhecida até V for maior que a soma da distância conhecida até u e o custo de U até V
-                // if (!solucao[v] && dist[v] > dist[u] + custoUV)
                 if (!solucao[v])
                 {
-                    printf("Atualizou dist[%d] = %d!\n", v, dist[u] + custoUV);
+                    // printf("dist[%d] = %d -> %d + %d (%d)\n", v, dist[v], dist[u], custoUV, dist[u] + custoUV);
                     dist[v] = dist[u] + custoUV; // Atualiza a distância conhecida até V
-                    // pred[v] = i; // Predecessor do centro de distribuição é a estufa i
-                    // solucao[v] = 1; // V entra na solução
-                    // insereVetor(vet, v); // Salvando no vetor solução
-                    // break;
-                }
-                // else { printf("\n"); }
-
-                printf("%d < %d && %d\n", dist[v], minCusto, solucao[v]);
-                if (dist[v] < minCusto && !solucao[v])
-                {
-                    minCusto = dist[v];
-                    solucaoV = v;
-                    predSolucao = pred[u];
-                    // pred[v] = i;
-                } 
-                // else if (solucao[v]) { printf("Pulou, %d está na solucao\n", v); }
-                
-                if (dist[v] == minCusto && !solucao[v])
-                {
-                    if (pred[u] < predSolucao)
+                        
+                    // printf("u < minCusto? %d < %d\n", dist[v], minCusto);
+                    if (dist[v] < minCusto)
                     {
+                        // printf("Sim!!!\n");
+                        minCusto = dist[v];
+                        solucaoV = v;
                         predSolucao = pred[u];
+                        // printf("pred[%d] = %d\n", solucaoV, predSolucao);
+                        // printf("minCusto = %d\n", minCusto);
                     }
+                    // Removendo o critério de desempate acerta mais casos na saida??????
+                    // else if (dist[v] == minCusto)
+                    // {
+                    //     // printf("É igual!\n");
+                    //     if (pred[u] < predSolucao)
+                    //     {
+                    //         predSolucao = pred[u];
+                    //     }
+                    // }
                 }
-                printf("\n");
-
+                // else { printf("Pulou, ja esta na solucao!\n"); }
+                // printf("\n");
                 aux = aux->prox;
             }
 
-            printf("===============\n===============\n\n");
+            // printf("===============\nTerminou de explorar o vértice %d\n===============\n\n", u);
         }
-        printf("Entra na solucao - %d\n", solucaoV);
-        printf("pred[%d] = %d\n", solucaoV, predSolucao);
-        printf("Custo = %d\n\n", minCusto);
+        // printf("Entra na solucao - %d\n", solucaoV);
+        // printf("pred[%d] = %d\n", solucaoV, predSolucao);
+        // printf("Custo = %d\n\n", minCusto);
         
         pred[solucaoV] = predSolucao; // Predecessor do centro de distribuição é a estufa i
         solucao[solucaoV] = 1; // V entra na solução
         insereVetor(vet, solucaoV); // Salvando no vetor solução
-        printf("Finalizou o for, recomeçando!\n");
+        // printf("Finalizou o for, recomeçando!\n");
     }
 }
 
