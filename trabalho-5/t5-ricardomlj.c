@@ -218,14 +218,15 @@ void dijkstra(Vertice *grafo, int *dist, int *pred, int *solucao, Vetor *vet, in
                         // printf("minCusto = %d\n", minCusto);
                     }
                     // Removendo o critério de desempate acerta mais casos na saida??????
-                    // else if (dist[v] == minCusto)
-                    // {
-                    //     // printf("É igual!\n");
-                    //     if (pred[u] < predSolucao)
-                    //     {
-                    //         predSolucao = pred[u];
-                    //     }
-                    // }
+                    else if (dist[v] == minCusto)
+                    {
+                        // printf("%d\n", pred[u]);
+                        // printf("É igual!\n");
+                        if (pred[u] < predSolucao)
+                        {
+                            predSolucao = pred[u];
+                        }
+                    }
                 }
                 // else { printf("Pulou, ja esta na solucao!\n"); }
                 // printf("\n");
